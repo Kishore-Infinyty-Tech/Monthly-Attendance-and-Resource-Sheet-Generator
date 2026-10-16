@@ -1,0 +1,573 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Resource Sheet Generator | Infinyty</title>
+<link rel="icon" href="/static/logo.webp">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy:#0b1747; --navy2:#16246b; --blue:#1f5cf0; --blue2:#3b8bff; --sky:#e9f1ff; --gold:#f6b400;
+    --bg:#f4f7fd; --card:#ffffff; --line:#e3e9f5; --muted:#6b7794; --text:#0e1a45;
+    --green:#0e9f6e; --green-bg:#e7f8f0; --red:#d92d3a; --red-bg:#fdecee; --amber:#a86800; --amber-bg:#fff5db;
+    --shadow:0 10px 30px rgba(20,45,120,.08); --shadow-lg:0 18px 50px rgba(20,45,120,.16);
+  }
+  * { box-sizing:border-box; }
+  html { scroll-behavior:smooth; }
+  body { margin:0; font-family:'Plus Jakarta Sans',system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; color:var(--text);
+         background:var(--bg); min-height:100vh; overflow-x:hidden; }
+  svg { display:block; }
+  button { font-family:inherit; }
+
+  /* animated background */
+  .bg { position:fixed; inset:0; z-index:-1; overflow:hidden;
+        background:radial-gradient(1200px 600px at 85% -10%, #dfeaff 0%, transparent 60%),
+                   radial-gradient(900px 500px at -10% 10%, #eaf2ff 0%, transparent 55%), var(--bg); }
+  .blob { position:absolute; border-radius:50%; filter:blur(70px); opacity:.45; animation:float 16s ease-in-out infinite; }
+  .b1 { width:360px; height:360px; background:#9ec2ff; top:-80px; right:8%; }
+  .b2 { width:300px; height:300px; background:#ffe49a; bottom:-60px; left:6%; animation-delay:-6s; opacity:.35; }
+  .b3 { width:260px; height:260px; background:#b9ccff; top:40%; left:48%; animation-delay:-11s; opacity:.3; }
+  @keyframes float { 0%,100% { transform:translate(0,0) scale(1);} 50% { transform:translate(30px,-26px) scale(1.08);} }
+
+  /* header */
+  .top { position:sticky; top:0; z-index:20; background:rgba(255,255,255,.88); backdrop-filter:blur(14px);
+         border-bottom:1px solid var(--line); }
+  .top-in { max-width:1280px; margin:0 auto; padding:12px 24px; display:flex; align-items:center; gap:18px; }
+  .logo { height:40px; width:auto; }
+  .vr { width:1px; height:34px; background:var(--line); }
+  .ttl b { display:block; font-size:16px; font-weight:800; letter-spacing:-.01em; }
+  .ttl span { font-size:13px; color:var(--muted); }
+  .stepper { margin-left:auto; display:flex; align-items:center; gap:10px; }
+  .step { display:flex; align-items:center; gap:10px; padding:7px 16px 7px 8px; border-radius:999px; color:var(--muted);
+          font-weight:600; font-size:14px; transition:all .35s; }
+  .step i { font-style:normal; width:28px; height:28px; border-radius:50%; background:#e8edf7; display:grid; place-items:center;
+            font-size:13px; font-weight:700; transition:all .35s; }
+  .step.on { background:var(--navy); color:#fff; box-shadow:0 8px 20px rgba(11,23,71,.28); }
+  .step.on i { background:linear-gradient(135deg,var(--blue2),var(--blue)); color:#fff; }
+  .step.done { color:var(--green); }
+  .step.done i { background:var(--green-bg); color:var(--green); }
+  .bar { width:44px; height:2px; background:var(--line); border-radius:2px; overflow:hidden; }
+  .bar b { display:block; height:100%; width:0; background:linear-gradient(90deg,var(--blue2),var(--blue)); transition:width .6s; }
+  .bar.fill b { width:100%; }
+
+  main { max-width:1280px; margin:0 auto; padding:30px 24px 60px; }
+  .hero { text-align:center; margin:6px 0 30px; animation:rise .7s both; }
+  .hero h1 { font-size:38px; line-height:1.15; margin:0 0 10px; font-weight:800; letter-spacing:-.025em; }
+  .hero h1 em { font-style:normal; background:linear-gradient(90deg,var(--blue),var(--blue2));
+                -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .hero p { margin:0 auto; max-width:640px; color:var(--muted); font-size:16px; }
+  .chips { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:18px; }
+  .chip { display:inline-flex; align-items:center; gap:8px; padding:7px 14px; background:#fff; border:1px solid var(--line);
+          border-radius:999px; font-size:13px; font-weight:600; color:var(--navy2); box-shadow:0 3px 10px rgba(20,45,120,.05); }
+  .chip svg { width:16px; height:16px; color:var(--blue); }
+
+  @keyframes rise { from { opacity:0; transform:translateY(18px);} to { opacity:1; transform:none;} }
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:26px; }
+  @media (max-width:960px) { .grid { grid-template-columns:1fr; } .stepper .step span { display:none; } .stepper .step { padding:6px; }
+    .vr, .ttl { display:none; } .bar { width:24px; } .hero h1 { font-size:30px; } .summary { gap:18px; } .go { margin-left:0; text-align:left; width:100%; } }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:24px; padding:26px; box-shadow:var(--shadow);
+          animation:rise .7s both; transition:box-shadow .3s, transform .3s; }
+  .card:nth-child(2) { animation-delay:.1s; }
+  .card:hover { box-shadow:var(--shadow-lg); }
+  .card-h { display:flex; align-items:flex-start; gap:16px; margin-bottom:18px; }
+  .ico { width:52px; height:52px; border-radius:16px; display:grid; place-items:center; color:#fff; flex:none;
+         background:linear-gradient(135deg,var(--blue2),var(--blue)); box-shadow:0 10px 22px rgba(31,92,240,.32); }
+  .ico svg { width:26px; height:26px; }
+  .card-h h2 { margin:2px 0 3px; font-size:21px; font-weight:800; letter-spacing:-.01em; }
+  .card-h p { margin:0; color:var(--muted); font-size:15px; }
+  .badge { margin-left:auto; display:inline-flex; gap:6px; align-items:center; padding:6px 12px; border-radius:999px;
+           background:var(--green-bg); color:var(--green); border:1px solid #bfeedb; font-weight:700; font-size:13px; white-space:nowrap;
+           animation:pop .4s both; }
+  .badge.blue { background:var(--sky); color:var(--blue); border-color:#c9dbff; }
+  .badge svg { width:15px; height:15px; }
+  @keyframes pop { from { transform:scale(.7); opacity:0;} to { transform:scale(1); opacity:1;} }
+
+  /* drop zones */
+  .drop { border:2px dashed #7aa3ff; border-radius:20px; background:linear-gradient(180deg,#fbfdff,#f4f8ff); min-height:300px;
+          display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:28px;
+          cursor:pointer; transition:all .25s; position:relative; overflow:hidden; }
+  .drop:hover, .drop.over { border-color:var(--blue); background:#eef4ff; transform:translateY(-2px); }
+  .drop.over { box-shadow:0 0 0 6px rgba(31,92,240,.12); }
+  .up { width:84px; height:84px; border-radius:24px; display:grid; place-items:center; color:#fff; margin-bottom:18px;
+        background:linear-gradient(135deg,var(--blue2),var(--blue)); box-shadow:0 14px 30px rgba(31,92,240,.35); animation:bob 3s ease-in-out infinite; }
+  .up svg { width:38px; height:38px; }
+  @keyframes bob { 0%,100% { transform:translateY(0);} 50% { transform:translateY(-8px);} }
+  .drop h3 { margin:0 0 6px; font-size:19px; font-weight:700; }
+  .drop h3 u { color:var(--blue); text-decoration-thickness:2px; text-underline-offset:4px; }
+  .drop p { margin:0; font-size:14px; color:var(--muted); }
+  .ghost { margin-top:18px; display:inline-flex; align-items:center; gap:10px; padding:12px 22px; background:#fff; color:var(--navy);
+           border:1px solid var(--line); border-radius:14px; font-weight:700; font-size:15px; cursor:pointer; transition:all .2s; }
+  .ghost:hover { border-color:var(--blue); color:var(--blue); transform:translateY(-1px); }
+  .ghost svg { width:18px; height:18px; }
+  input[type=file] { display:none; }
+
+  .file { display:flex; align-items:center; gap:14px; padding:14px 16px; border-radius:16px; background:var(--green-bg);
+          border:1px solid #bfeedb; margin-bottom:14px; animation:rise .4s both; }
+  .file .fi { width:48px; height:48px; border-radius:14px; background:linear-gradient(135deg,#19c37d,#0e9f6e); color:#fff;
+              display:grid; place-items:center; flex:none; }
+  .file .fi svg { width:24px; height:24px; }
+  .file b { display:block; font-size:16px; font-weight:700; word-break:break-all; }
+  .file small { color:var(--muted); font-size:13px; }
+  .file .rep { margin-left:auto; background:none; border:0; color:var(--navy2); font-weight:700; font-size:15px; cursor:pointer; padding:8px 12px; border-radius:10px; }
+  .file .rep:hover { background:#fff; }
+
+  .detect { display:flex; align-items:center; gap:10px; width:100%; background:none; border:0; padding:8px 4px; cursor:pointer;
+            color:var(--blue); font-weight:700; font-size:15px; }
+  .detect svg { width:18px; height:18px; }
+  .detect .ok { margin-left:auto; color:var(--green); }
+  .cols { display:none; grid-template-columns:1fr 1fr; gap:8px; margin:4px 0 12px; }
+  .cols.open { display:grid; animation:rise .3s both; }
+  .col { display:flex; align-items:center; gap:8px; font-size:13px; padding:8px 10px; border-radius:10px; background:#f6f8fd; border:1px solid var(--line); }
+  .col i { width:8px; height:8px; border-radius:50%; background:var(--green); flex:none; }
+  .col.miss i { background:#c4cbe0; } .col.miss.req i { background:var(--red); }
+  .col span { color:var(--muted); margin-left:auto; max-width:48%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+  .search { position:relative; margin:8px 0 10px; }
+  .search svg { position:absolute; left:12px; top:50%; transform:translateY(-50%); width:17px; height:17px; color:var(--muted); }
+  .search input { width:100%; padding:10px 12px 10px 38px; border:1px solid var(--line); border-radius:12px; font:inherit; font-size:14px; background:#fafcff; }
+  .search input:focus { outline:2px solid #bcd1ff; border-color:var(--blue2); }
+  .list { border:1px solid var(--line); border-radius:16px; max-height:420px; overflow:auto; background:#fff; }
+  .row { display:flex; align-items:center; gap:14px; padding:12px 16px; border-bottom:1px solid #eef1f8; transition:background .15s; animation:rise .35s both; }
+  .row:last-child { border-bottom:0; } .row:hover { background:#f6f9ff; }
+  .av { width:40px; height:40px; border-radius:50%; display:grid; place-items:center; color:#fff; font-weight:800; font-size:13px; flex:none; }
+  .row b { font-weight:700; font-size:16px; }
+  .row small { display:block; color:var(--muted); font-size:12px; margin-top:1px; }
+  .row .id { margin-left:auto; color:#8b95ad; font-size:14px; font-variant-numeric:tabular-nums; text-align:right; }
+  .tag { display:inline-block; margin-top:3px; font-size:11px; padding:2px 9px; border-radius:999px; font-weight:700; }
+  .tag.g { background:var(--green-bg); color:var(--green); } .tag.n { background:#eef1f8; color:#8b95ad; }
+  .tag.w { background:var(--amber-bg); color:var(--amber); } .tag.r { background:var(--red-bg); color:var(--red); }
+  .empty { padding:30px; text-align:center; color:var(--muted); font-size:14px; }
+
+  .rfile { display:flex; align-items:center; gap:12px; padding:12px 14px; border:1px solid var(--line); border-radius:14px; margin-bottom:10px;
+           background:#fff; animation:rise .35s both; }
+  .rfile .fi { width:40px; height:40px; border-radius:12px; display:grid; place-items:center; flex:none; background:var(--sky); color:var(--blue); }
+  .rfile .fi svg { width:20px; height:20px; }
+  .rfile.bad { border-color:#f5b5b9; background:var(--red-bg); } .rfile.bad .fi { background:#fff; color:var(--red); }
+  .rfile b { font-size:14px; word-break:break-all; display:block; } .rfile small { color:var(--muted); font-size:12px; }
+  .rfile .x { margin-left:auto; background:none; border:0; cursor:pointer; color:var(--muted); padding:6px; border-radius:8px; }
+  .rfile .x:hover { background:#eef1f8; color:var(--red); } .rfile .x svg { width:18px; height:18px; }
+  .rfiles { max-height:300px; overflow:auto; margin-top:14px; padding-right:2px; }
+  .mini-drop { margin-top:14px; border:2px dashed #b7ccf8; border-radius:14px; padding:14px; text-align:center; font-size:14px; font-weight:600;
+               color:var(--blue); cursor:pointer; transition:all .2s; background:#f9fbff; }
+  .mini-drop:hover, .mini-drop.over { border-color:var(--blue); background:#eef4ff; }
+
+  /* summary bar */
+  .summary { margin-top:26px; display:flex; align-items:center; gap:30px; flex-wrap:wrap; background:var(--card); border:1px solid var(--line);
+             border-radius:24px; padding:20px 26px; box-shadow:var(--shadow); animation:rise .7s .15s both; }
+  .stat { display:flex; align-items:center; gap:14px; }
+  .stat .si { width:50px; height:50px; border-radius:16px; display:grid; place-items:center; }
+  .stat .si svg { width:24px; height:24px; }
+  .stat small { display:block; font-size:12px; letter-spacing:.08em; color:var(--muted); font-weight:700; }
+  .stat b { font-size:24px; font-weight:800; letter-spacing:-.01em; }
+  .stat b.dim { color:#c2c9dc; }
+  .si.g { background:var(--green-bg); color:var(--green); } .si.b { background:var(--sky); color:var(--blue); } .si.y { background:var(--amber-bg); color:#d99100; }
+  .go { margin-left:auto; text-align:right; }
+  .primary { position:relative; overflow:hidden; border:0; color:#fff; padding:17px 34px; border-radius:16px; font-size:18px; font-weight:800;
+             cursor:pointer; display:inline-flex; align-items:center; gap:12px; background:linear-gradient(135deg,var(--blue),#0b44d8);
+             box-shadow:0 14px 28px rgba(31,92,240,.4); transition:transform .2s, box-shadow .2s, opacity .2s; }
+  .primary:hover:enabled { transform:translateY(-2px); box-shadow:0 18px 34px rgba(31,92,240,.5); }
+  .primary:disabled { opacity:.5; cursor:not-allowed; box-shadow:none; }
+  .primary svg { width:22px; height:22px; transition:transform .2s; } .primary:hover:enabled svg { transform:translateX(4px); }
+  .primary::after { content:""; position:absolute; top:0; left:-60%; width:40%; height:100%; transform:skewX(-20deg);
+                    background:linear-gradient(90deg,transparent,rgba(255,255,255,.35),transparent); animation:shine 3.2s infinite; }
+  .primary:disabled::after { display:none; }
+  @keyframes shine { 0% { left:-60%; } 60%,100% { left:130%; } }
+  .go small { display:block; margin-top:8px; font-size:13px; color:var(--muted); }
+  .monthpick { display:flex; align-items:center; gap:8px; margin-top:6px; }
+  .monthpick input { padding:7px 10px; border:1px solid var(--line); border-radius:10px; font:inherit; font-size:14px; }
+
+  /* processing */
+  .proc { max-width:620px; margin:40px auto; text-align:center; padding:44px 36px; }
+  .ring { width:150px; height:150px; margin:0 auto 22px; position:relative; }
+  .ring svg { width:150px; height:150px; transform:rotate(-90deg); }
+  .ring circle { fill:none; stroke-width:12; stroke-linecap:round; }
+  .ring .t { stroke:#e6ecf9; } .ring .p { stroke:url(#g); transition:stroke-dashoffset .5s; }
+  .ring b { position:absolute; inset:0; display:grid; place-items:center; font-size:30px; font-weight:800; }
+  .stages { text-align:left; max-width:380px; margin:26px auto 0; }
+  .stg { display:flex; align-items:center; gap:12px; padding:9px 0; color:#a2abc4; font-weight:600; transition:color .3s; }
+  .stg i { width:24px; height:24px; border-radius:50%; border:2px solid #d5dcef; display:grid; place-items:center; transition:all .3s; flex:none; }
+  .stg i svg { width:14px; height:14px; color:#fff; opacity:0; }
+  .stg.on { color:var(--navy); } .stg.on i { border-color:var(--blue); border-top-color:transparent; animation:spin .8s linear infinite; }
+  .stg.done { color:var(--green); } .stg.done i { background:var(--green); border-color:var(--green); animation:none; } .stg.done i svg { opacity:1; }
+  @keyframes spin { to { transform:rotate(360deg);} }
+
+  /* results */
+  .kpis { display:grid; grid-template-columns:repeat(4,1fr); gap:18px; margin-bottom:22px; }
+  @media (max-width:900px) { .kpis { grid-template-columns:1fr 1fr; } }
+  .kpi { background:#fff; border:1px solid var(--line); border-radius:20px; padding:18px 20px; box-shadow:var(--shadow); animation:rise .6s both; }
+  .kpi:nth-child(2) { animation-delay:.07s } .kpi:nth-child(3) { animation-delay:.14s } .kpi:nth-child(4) { animation-delay:.21s }
+  .kpi small { color:var(--muted); font-weight:700; font-size:12px; letter-spacing:.08em; }
+  .kpi b { display:block; font-size:32px; font-weight:800; margin-top:4px; letter-spacing:-.02em; }
+  .kpi.red b { color:var(--red); } .kpi.amber b { color:#d99100; } .kpi.green b { color:var(--green); }
+  .alert { border-radius:18px; padding:16px 20px; margin-bottom:18px; animation:rise .5s both; }
+  .alert.err { background:var(--red-bg); border:1px solid #f6c0c5; color:#a11a25; }
+  .alert.warn { background:var(--amber-bg); border:1px solid #f4dca0; color:#7a4d00; }
+  .alert h4 { margin:0 0 8px; font-size:16px; display:flex; align-items:center; gap:8px; } .alert h4 svg { width:20px; height:20px; }
+  .alert ul { margin:0; padding-left:20px; font-size:14px; } .alert li { margin:5px 0; }
+  .tablewrap { overflow:auto; border:1px solid var(--line); border-radius:18px; max-height:520px; }
+  table { border-collapse:collapse; width:100%; font-size:14px; }
+  th { position:sticky; top:0; background:var(--navy); color:#fff; padding:12px 14px; text-align:center; font-weight:700; white-space:nowrap; }
+  td { padding:11px 14px; text-align:center; border-bottom:1px solid #eef1f8; background:#fff; }
+  th.l, td.l { text-align:left; }
+  tr:hover td { background:#f6f9ff; } tr.rowred td { color:var(--red); font-weight:600; background:#fff7f8; }
+  td.amtred { color:var(--red); font-weight:800; }
+  .actions { display:flex; gap:14px; align-items:center; flex-wrap:wrap; margin:6px 0 20px; }
+  .dl { display:inline-flex; align-items:center; gap:12px; text-decoration:none; color:#fff; font-weight:800; font-size:18px; padding:17px 32px;
+        border-radius:16px; background:linear-gradient(135deg,#19c37d,#0e9f6e); box-shadow:0 14px 28px rgba(14,159,110,.38);
+        transition:transform .2s; animation:pulse 2.4s infinite; }
+  .dl:hover { transform:translateY(-2px); } .dl svg { width:22px; height:22px; }
+  @keyframes pulse { 0%,100% { box-shadow:0 14px 28px rgba(14,159,110,.38);} 50% { box-shadow:0 14px 40px rgba(14,159,110,.6);} }
+  .link { background:none; border:0; color:var(--blue); font-weight:700; font-size:15px; cursor:pointer; padding:10px 14px; border-radius:12px; }
+  .link:hover { background:var(--sky); }
+  .legend { font-size:13px; color:var(--muted); margin-top:12px; }
+  [hidden] { display:none !important; }
+  .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:var(--navy); color:#fff; padding:12px 20px; border-radius:14px;
+           box-shadow:var(--shadow-lg); font-weight:600; font-size:14px; z-index:50; animation:rise .3s both; }
+</style>
+</head>
+<body>
+<div class="bg"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div></div>
+
+<header class="top"><div class="top-in">
+  <img class="logo" src="/static/logo.webp" alt="Infinyty">
+  <div class="vr"></div>
+  <div class="ttl"><b>Resource Sheet Generator</b><span>Attendance + previous sheet &rarr; client-ready Excel</span></div>
+  <div class="stepper">
+    <div class="step on" id="s1"><i>1</i><span>Upload</span></div><div class="bar" id="b1"><b></b></div>
+    <div class="step" id="s2"><i>2</i><span>Process &amp; match</span></div><div class="bar" id="b2"><b></b></div>
+    <div class="step" id="s3"><i>3</i><span>Review &amp; download</span></div>
+  </div>
+</div></header>
+
+<main>
+  <!-- STEP 1 -->
+  <section id="stepUpload">
+    <div class="hero">
+      <h1>Monthly resource sheets, <em>done in one click</em></h1>
+      <p>Upload the master attendance sheet and last month's resource sheet(s). We match every employee, update leave and billing, and package the files.</p>
+      <div class="chips">
+        <span class="chip" data-i="users">All employees at once</span>
+        <span class="chip" data-i="shield">Smart column &amp; tab detection</span>
+        <span class="chip" data-i="spark">Red flags highlighted</span>
+      </div>
+    </div>
+
+    <div class="grid">
+      <!-- master card -->
+      <div class="card" id="masterCard">
+        <div class="card-h">
+          <div class="ico" data-i="sheet"></div>
+          <div><h2>Master attendance sheet</h2><p>The Excel with every employee&rsquo;s days &amp; leaves</p></div>
+          <span class="badge" id="mBadge" hidden></span>
+        </div>
+        <div id="mEmpty">
+          <div class="drop" id="mDrop">
+            <div class="up" data-i="upload"></div>
+            <h3>Drop the master sheet here, or <u>browse</u></h3>
+            <p>Excel (.xlsx) &middot; only the &ldquo;Monthly&rdquo; tab is used</p>
+          </div>
+        </div>
+        <div id="mLoaded" hidden>
+          <div class="file">
+            <div class="fi" data-i="sheet"></div>
+            <div><b id="mName"></b><small id="mMeta"></small></div>
+            <button class="rep" id="mReplace" type="button">Replace</button>
+          </div>
+          <button class="detect" id="mDetect" type="button"><span data-i="columns"></span>Check detected columns
+            <span class="badge ok" id="mDetBadge" style="margin-left:auto"></span></button>
+          <div class="cols" id="mCols"></div>
+          <div class="search"><span data-i="search"></span><input id="mSearch" placeholder="Search employee or ID"></div>
+          <div class="list" id="mList"></div>
+        </div>
+        <input type="file" id="mInput" accept=".xlsx,.xlsm">
+      </div>
+
+      <!-- resource card -->
+      <div class="card" id="resCard">
+        <div class="card-h">
+          <div class="ico" data-i="doc"></div>
+          <div><h2>Previous resource sheets</h2><p>One per employee, or one with everyone &middot; Excel</p></div>
+          <span class="badge blue" id="rBadge" hidden></span>
+        </div>
+        <div id="rEmpty">
+          <div class="drop" id="rDrop">
+            <div class="up" data-i="upload"></div>
+            <h3>Drop resource sheets here, or <u>browse</u></h3>
+            <p>Select many files at once &mdash; multi-employee sheets are fine</p>
+            <button class="ghost" id="rFolder" type="button"><span data-i="folder"></span>Choose a whole folder</button>
+          </div>
+        </div>
+        <div id="rLoaded" hidden>
+          <div class="rfiles" id="rFiles"></div>
+          <div class="mini-drop" id="rMore">+ Add more resource sheets</div>
+        </div>
+        <input type="file" id="rInput" accept=".xlsx,.xlsm" multiple>
+        <input type="file" id="rFolderInput" webkitdirectory multiple>
+      </div>
+    </div>
+
+    <div class="summary">
+      <div class="stat"><div class="si g" data-i="users"></div><div><small>MASTER</small><b id="stM" class="dim">&mdash;</b></div></div>
+      <div class="stat"><div class="si b" data-i="doc"></div><div><small>RESOURCE SHEETS</small><b id="stR" class="dim">&mdash;</b></div></div>
+      <div class="stat"><div class="si y" data-i="clock"></div><div><small>MONTH</small><b id="stMo" class="dim">&mdash;</b>
+        <div class="monthpick" id="monthPick" hidden><input type="month" id="monthIn"></div></div></div>
+      <div class="go">
+        <button class="primary" id="go" disabled>Generate sheets <span data-i="arrow"></span></button>
+        <small id="goHint">Add the master sheet and at least one resource sheet</small>
+      </div>
+    </div>
+  </section>
+
+  <!-- STEP 2 -->
+  <section id="stepProcess" hidden>
+    <div class="card proc">
+      <div class="ring">
+        <svg viewBox="0 0 150 150"><defs><linearGradient id="g" x1="0" x2="1"><stop offset="0" stop-color="#3b8bff"/><stop offset="1" stop-color="#1f5cf0"/></linearGradient></defs>
+          <circle class="t" cx="75" cy="75" r="62"/><circle class="p" id="ringP" cx="75" cy="75" r="62" stroke-dasharray="390" stroke-dashoffset="390"/></svg>
+        <b id="pct">0%</b>
+      </div>
+      <h2 style="margin:0 0 4px;font-size:24px;font-weight:800">Building your sheets&hellip;</h2>
+      <p style="margin:0;color:var(--muted)">Matching employees and updating every row</p>
+      <div class="stages" id="stages"></div>
+    </div>
+  </section>
+
+  <!-- STEP 3 -->
+  <section id="stepResult" hidden></section>
+</main>
+
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const P = {
+  upload:'<path d="M12 16V4m0 0L7 9m5-5 5 5M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/>',
+  sheet:'<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6M12 11v8"/>',
+  doc:'<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/>',
+  users:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/>',
+  columns:'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16M15 4v16"/>',
+  folder:'<path d="M3 7a2 2 0 0 1 2-2h4l2 3h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
+  search:'<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>',
+  clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  arrow:'<path d="M5 12h14m-6-6 6 6-6 6"/>',
+  check:'<path d="m5 12 5 5 9-10"/>',
+  x:'<path d="M6 6l12 12M18 6 6 18"/>',
+  alert:'<path d="M12 3 2 20h20z"/><path d="M12 10v4M12 17.5v.5"/>',
+  download:'<path d="M12 4v12m0 0 5-5m-5 5-5-5M4 20h16"/>',
+  shield:'<path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z"/><path d="m9 12 2 2 4-4"/>',
+  spark:'<path d="M12 3l2.2 5.8L20 11l-5.8 2.2L12 19l-2.2-5.8L4 11l5.8-2.2z"/>',
+};
+const icon = n => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${P[n]}</svg>`;
+const hydrate = root => (root || document).querySelectorAll('[data-i]').forEach(e => { if (!e.dataset.done) { e.insertAdjacentHTML('afterbegin', icon(e.dataset.i)); e.dataset.done = 1; } });
+hydrate();
+
+const COLORS = ['#f6b400','#2196f3','#1f5cf0','#16a3a3','#7a5af8','#e5484d','#0e9f6e','#ef6c00'];
+const initials = n => n.split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase();
+const colorOf = n => COLORS[[...n].reduce((a, c) => a + c.charCodeAt(0), 0) % COLORS.length];
+const nname = s => String(s || '').toLowerCase().replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
+const nid = s => String(s || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+
+const st = { master: null, mfile: null, res: [] };   // res: {file, info|null, error|null}
+
+// ---------- uploads ----------
+function wireDrop(el, onFiles, click) {
+  ['dragenter','dragover'].forEach(ev => el.addEventListener(ev, e => { e.preventDefault(); el.classList.add('over'); }));
+  ['dragleave','drop'].forEach(ev => el.addEventListener(ev, e => { e.preventDefault(); el.classList.remove('over'); }));
+  el.addEventListener('drop', e => onFiles([...e.dataTransfer.files]));
+  if (click) el.addEventListener('click', click);
+}
+const isXlsx = f => /\.xls[xm]$/i.test(f.name);
+wireDrop($('#mDrop'), fs => loadMaster(fs[0]), () => $('#mInput').click());
+$('#mInput').addEventListener('change', e => { if (e.target.files[0]) loadMaster(e.target.files[0]); e.target.value = ''; });
+$('#mReplace').addEventListener('click', () => $('#mInput').click());
+wireDrop($('#rDrop'), addResources, e => { if (!e.target.closest('#rFolder')) $('#rInput').click(); });
+wireDrop($('#rMore'), addResources, () => $('#rInput').click());
+$('#rInput').addEventListener('change', e => { addResources([...e.target.files]); e.target.value = ''; });
+$('#rFolder').addEventListener('click', e => { e.stopPropagation(); $('#rFolderInput').click(); });
+$('#rFolderInput').addEventListener('change', e => { addResources([...e.target.files]); e.target.value = ''; });
+$('#mDetect').addEventListener('click', () => $('#mCols').classList.toggle('open'));
+$('#mSearch').addEventListener('input', renderMasterList);
+$('#monthIn').addEventListener('change', refreshSummary);
+
+function toast(m) { const t = document.createElement('div'); t.className = 'toast'; t.textContent = m; document.body.appendChild(t); setTimeout(() => t.remove(), 3500); }
+
+async function inspect(kind, file) {
+  const fd = new FormData(); fd.append('file', file);
+  const r = await fetch('/api/inspect/' + kind, { method: 'POST', body: fd });
+  return r.json();
+}
+
+async function loadMaster(file) {
+  if (!file) return;
+  if (!isXlsx(file)) { toast('Please choose an Excel (.xlsx) file'); return; }
+  $('#mDrop').style.opacity = .6;
+  const d = await inspect('master', file);
+  $('#mDrop').style.opacity = 1;
+  if (!d.ok) { toast(d.error); return; }
+  st.master = d; st.mfile = file;
+  renderMaster(); refreshSummary();
+}
+
+async function addResources(files) {
+  const good = files.filter(isXlsx);
+  if (!good.length) { if (files.length) toast('Only Excel (.xlsx) files are supported'); return; }
+  for (const f of good) {
+    if (st.res.some(r => r.file.name === f.name && r.file.size === f.size)) continue;
+    const item = { file: f, info: null, error: null };
+    st.res.push(item);
+  }
+  renderResources();
+  for (const item of st.res.filter(r => !r.info && !r.error)) {
+    const d = await inspect('resource', item.file);
+    if (d.ok) item.info = d; else item.error = d.error;
+    renderResources(); refreshSummary();
+  }
+}
+
+// ---------- rendering ----------
+function resourceIndex() {
+  const byName = new Map(), byId = new Map();
+  st.res.forEach(r => r.info && r.info.employees.forEach(e => {
+    byName.set(nname(e.name), r.file.name);
+    if (e.vendor_id) byId.set(nid(e.vendor_id), r.file.name);
+  }));
+  return { byName, byId };
+}
+
+function renderMaster() {
+  const d = st.master; if (!d) return;
+  $('#mEmpty').hidden = true; $('#mLoaded').hidden = false;
+  $('#mBadge').hidden = false; $('#mBadge').innerHTML = icon('users') + d.employees.length + ' employees';
+  $('#mName').textContent = d.filename;
+  $('#mMeta').textContent = `Sheet “${d.sheet}” · ${d.employees.length} employees · ${d.columns.filter(c => c.found).length} columns`;
+  const miss = d.columns.filter(c => c.required && !c.found).length;
+  $('#mDetBadge').textContent = miss ? miss + ' missing' : 'All found';
+  $('#mDetBadge').style.color = miss ? 'var(--red)' : 'var(--green)';
+  $('#mCols').innerHTML = d.columns.map(c => `<div class="col ${c.found ? '' : 'miss'} ${c.required ? 'req' : ''}"><i></i>${esc(c.label)}<span>${c.found ? esc(c.header) : (c.required ? 'missing' : 'optional')}</span></div>`).join('');
+  renderMasterList();
+}
+
+function renderMasterList() {
+  const d = st.master; if (!d) return;
+  const q = nname($('#mSearch').value), idx = resourceIndex(), hasRes = st.res.some(r => r.info);
+  const rows = d.employees.filter(e => !q || nname(e.name).includes(q) || nid(e.resource_id).includes(nid(q)) && nid(q));
+  $('#mList').innerHTML = rows.length ? rows.map((e, i) => {
+    const found = idx.byName.has(nname(e.name)) || (e.resource_id && idx.byId.has(nid(e.resource_id))) || (e.vendor_id && idx.byId.has(nid(e.vendor_id)));
+    const tag = !hasRes ? '' : found ? '<span class="tag g">Resource sheet added</span>' : '<span class="tag n">No resource sheet</span>';
+    return `<div class="row" style="animation-delay:${Math.min(i, 12) * 25}ms"><div class="av" style="background:${colorOf(e.name)}">${esc(initials(e.name))}</div>
+      <div><b>${esc(e.name)}</b>${tag ? '<small>' + tag + '</small>' : ''}</div><div class="id">${esc(e.resource_id || e.vendor_id)}</div></div>`;
+  }).join('') : '<div class="empty">No employee matches your search</div>';
+}
+
+function renderResources() {
+  $('#rEmpty').hidden = st.res.length > 0; $('#rLoaded').hidden = st.res.length === 0;
+  const total = st.res.reduce((a, r) => a + (r.info ? r.info.employees.length : 0), 0);
+  $('#rBadge').hidden = !st.res.length;
+  $('#rBadge').innerHTML = icon('doc') + st.res.length + ' file' + (st.res.length > 1 ? 's' : '') + ' · ' + total + ' employees';
+  $('#rFiles').innerHTML = st.res.map((r, i) => {
+    const meta = r.error ? esc(r.error) : r.info ? `Sheet “${esc(r.info.sheet)}” · ${r.info.employees.length} employee${r.info.employees.length > 1 ? 's' : ''}` +
+      (r.info.month ? ' · ' + esc(r.info.month) : '') : 'Reading…';
+    const names = r.info ? r.info.employees.slice(0, 3).map(e => esc(e.name)).join(', ') + (r.info.employees.length > 3 ? ' +' + (r.info.employees.length - 3) + ' more' : '') : '';
+    return `<div class="rfile ${r.error ? 'bad' : ''}"><div class="fi">${icon(r.error ? 'alert' : 'doc')}</div>
+      <div><b>${esc(r.file.name)}</b><small>${meta}</small>${names ? '<small>' + names + '</small>' : ''}</div>
+      <button class="x" data-rm="${i}" title="Remove">${icon('x')}</button></div>`;
+  }).join('');
+  document.querySelectorAll('[data-rm]').forEach(b => b.addEventListener('click', () => { st.res.splice(+b.dataset.rm, 1); renderResources(); refreshSummary(); }));
+  renderMasterList();
+}
+
+function targetMonth() {
+  if ($('#monthIn').value) return { value: $('#monthIn').value, label: null };
+  return st.master && st.master.month_value ? { value: st.master.month_value, label: st.master.month } : null;
+}
+
+function refreshSummary() {
+  const m = st.master, okRes = st.res.filter(r => r.info);
+  const set = (id, txt, dim) => { const e = $(id); e.textContent = txt; e.classList.toggle('dim', dim); };
+  m ? set('#stM', m.employees.length + ' employees', false) : set('#stM', '—', true);
+  okRes.length ? set('#stR', st.res.length + ' file' + (st.res.length > 1 ? 's' : '') + ' · ' + okRes.reduce((a, r) => a + r.info.employees.length, 0) + ' employees', false) : set('#stR', '—', true);
+  const needMonth = m && !m.month_value;
+  $('#monthPick').hidden = !needMonth;
+  const tm = targetMonth();
+  if (tm) { const [y, mo] = tm.value.split('-'); set('#stMo', new Date(+y, +mo - 1, 1).toLocaleString('en', { month: 'long', year: 'numeric' }), false); }
+  else set('#stMo', needMonth ? 'Pick month' : '—', true);
+  const ready = m && okRes.length && tm;
+  $('#go').disabled = !ready;
+  $('#goHint').textContent = ready ? 'Ready — we will match each employee automatically' :
+    !m ? 'Add the master sheet and at least one resource sheet' : !okRes.length ? 'Add at least one resource sheet' : 'Choose the month above';
+}
+
+// ---------- stepper ----------
+function setStep(n) {
+  [1, 2, 3].forEach(i => { const s = $('#s' + i); s.classList.toggle('on', i === n); s.classList.toggle('done', i < n); s.querySelector('i').innerHTML = i < n ? icon('check') : i; });
+  $('#b1').classList.toggle('fill', n > 1); $('#b2').classList.toggle('fill', n > 2);
+  $('#stepUpload').hidden = n !== 1; $('#stepProcess').hidden = n !== 2; $('#stepResult').hidden = n !== 3;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ---------- generate ----------
+const STAGES = ['Reading the master sheet', 'Matching employees', 'Updating leave & billing', 'Packing your files'];
+function showProgress(p, stage) {
+  $('#ringP').style.strokeDashoffset = 390 - 390 * p / 100; $('#pct').textContent = Math.round(p) + '%';
+  $('#stages').innerHTML = STAGES.map((s, i) => `<div class="stg ${i < stage ? 'done' : i === stage ? 'on' : ''}"><i>${icon('check')}</i>${s}</div>`).join('');
+}
+
+$('#go').addEventListener('click', async () => {
+  setStep(2); showProgress(4, 0);
+  let p = 4, stage = 0;
+  const timer = setInterval(() => { p = Math.min(p + 3 + Math.random() * 4, 90); stage = Math.min(Math.floor(p / 25), 3); showProgress(p, stage); }, 220);
+  const fd = new FormData();
+  fd.append('master', st.mfile);
+  st.res.filter(r => r.info).forEach(r => fd.append('resources', r.file));
+  if ($('#monthIn').value) fd.append('month', $('#monthIn').value);
+  let data;
+  try { data = await (await fetch('/api/generate', { method: 'POST', body: fd })).json(); }
+  catch (e) { data = { errors: ['Could not reach the server: ' + e], warnings: [], employees: [] }; }
+  clearInterval(timer);
+  showProgress(100, 4);
+  setTimeout(() => renderResult(data), 650);
+});
+
+function renderResult(d) {
+  const ok = !!d.download;
+  setStep(ok ? 3 : 1);
+  if (!ok) { showErrors(d); return; }
+  const reds = d.employees.filter(e => e.amount_red).length, rowred = d.employees.filter(e => e.row_red).length;
+  const total = d.employees.reduce((a, e) => a + e.amount, 0);
+  let h = `<div class="hero" style="margin-top:0"><h1>Your sheets are <em>ready</em></h1><p>${esc(d.month)} &middot; ${d.employees.length} employees processed &middot; ${d.file_count} files in the ZIP</p></div>
+    <div class="kpis">
+      <div class="kpi green"><small>EMPLOYEES</small><b>${d.employees.length}</b></div>
+      <div class="kpi"><small>TOTAL BILLING</small><b>${total.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</b></div>
+      <div class="kpi red"><small>AMOUNT BELOW RATE</small><b>${reds}</b></div>
+      <div class="kpi amber"><small>LEAVE OVER LIMIT</small><b>${rowred}</b></div></div>`;
+  if (d.warnings.length) h += `<div class="alert warn"><h4>${icon('alert')}Warnings (${d.warnings.length})</h4><ul>${d.warnings.map(w => '<li>' + esc(w) + '</li>').join('')}</ul></div>`;
+  h += `<div class="actions"><a class="dl" href="${d.download}">${icon('download')}Download ZIP</a><button class="link" id="again">Start over</button></div>
+    <div class="tablewrap"><table><tr><th class="l">Employee</th><th>Matched by</th><th>Leave till date</th><th>Total leave</th><th>Balance</th><th>Billing days</th><th>Rate/Month</th><th>Billing amount</th></tr>
+    ${d.employees.map(r => `<tr class="${r.row_red ? 'rowred' : ''}"><td class="l">${esc(r.name)}</td>
+      <td><span class="tag ${r.matched_by === 'Resource Name' ? 'g' : 'w'}">${esc(r.matched_by)}</span></td>
+      <td>${r.leave_till_date} <small style="color:#8b95ad">(${r.prev_leave} + ${r.month_leave})</small></td>
+      <td>${r.total_leave == null ? '-' : r.total_leave}</td><td>${r.balance == null ? '-' : r.balance}</td>
+      <td>${r.billing_days} / ${r.days}</td><td>${r.rate}</td><td class="${r.amount_red ? 'amtred' : ''}">${r.amount.toFixed(2)}</td></tr>`).join('')}</table></div>
+    <p class="legend">Red row = leave taken is more than total leave &middot; Red amount = billed less than the monthly rate</p>`;
+  $('#stepResult').innerHTML = h;
+  $('#again').addEventListener('click', () => { st.master = null; st.mfile = null; st.res = [];
+    $('#mEmpty').hidden = false; $('#mLoaded').hidden = true; $('#mBadge').hidden = true; $('#monthIn').value = '';
+    renderResources(); refreshSummary(); setStep(1); });
+}
+
+function showErrors(d) {
+  let box = $('#errBox');
+  if (!box) { box = document.createElement('div'); box.id = 'errBox'; $('#stepUpload').prepend(box); }
+  let h = '';
+  if (d.errors && d.errors.length) h += `<div class="alert err"><h4>${icon('alert')}Cannot generate yet &mdash; please fix these first</h4><ul>${d.errors.map(e => '<li>' + esc(e) + '</li>').join('')}</ul></div>`;
+  if (d.warnings && d.warnings.length) h += `<div class="alert warn"><h4>${icon('alert')}Warnings (${d.warnings.length})</h4><ul>${d.warnings.map(w => '<li>' + esc(w) + '</li>').join('')}</ul></div>`;
+  box.innerHTML = h;
+  box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+refreshSummary();
+</script>
+</body>
+</html>
