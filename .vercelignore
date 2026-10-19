@@ -1,0 +1,6 @@
+Test Inputs/
+tests/
+*.docx
+*.pdf
+run.bat
+.claude/

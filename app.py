@@ -1,5 +1,7 @@
 """Web front end.  Run:  python app.py   then open http://127.0.0.1:5000"""
+import base64
 import io
+import os
 import re
 import tempfile
 import uuid
@@ -65,8 +67,12 @@ def generate():
         with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as z:
             for path, data in result["files"]:
                 z.writestr(path, data)
-        (STORE / f"{token}.zip").write_bytes(buf.getvalue())
-        payload["download"] = f"/download/{token}"
+        if os.environ.get("VERCEL"):
+            # serverless instances do not share /tmp, so a later /download request may not find the file
+            payload["download"] = "data:application/zip;base64," + base64.b64encode(buf.getvalue()).decode()
+        else:
+            (STORE / f"{token}.zip").write_bytes(buf.getvalue())
+            payload["download"] = f"/download/{token}"
         payload["file_count"] = len(result["files"])
     return jsonify(payload)
 

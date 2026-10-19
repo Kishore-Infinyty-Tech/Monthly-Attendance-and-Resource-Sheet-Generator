@@ -543,7 +543,7 @@ function renderResult(d) {
       <div class="kpi red"><small>AMOUNT BELOW RATE</small><b>${reds}</b></div>
       <div class="kpi amber"><small>LEAVE OVER LIMIT</small><b>${rowred}</b></div></div>`;
   if (d.warnings.length) h += `<div class="alert warn"><h4>${icon('alert')}Warnings (${d.warnings.length})</h4><ul>${d.warnings.map(w => '<li>' + esc(w) + '</li>').join('')}</ul></div>`;
-  h += `<div class="actions"><a class="dl" href="${d.download}">${icon('download')}Download ZIP</a><button class="link" id="again">Start over</button></div>
+  h += `<div class="actions"><a class="dl" href="${d.download}" download="Resource Sheets.zip">${icon('download')}Download ZIP</a><button class="link" id="again">Start over</button></div>
     <div class="tablewrap"><table><tr><th class="l">Employee</th><th>Matched by</th><th>Leave till date</th><th>Total leave</th><th>Balance</th><th>Billing days</th><th>Rate/Month</th><th>Billing amount</th></tr>
     ${d.employees.map(r => `<tr class="${r.row_red ? 'rowred' : ''}"><td class="l">${esc(r.name)}</td>
       <td><span class="tag ${r.matched_by === 'Resource Name' ? 'g' : 'w'}">${esc(r.matched_by)}</span></td>
