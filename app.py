@@ -12,7 +12,8 @@ from flask import Flask, jsonify, render_template, request, send_file
 
 import core
 
-app = Flask(__name__)
+# assets live in public/ so Vercel serves them from its CDN; Flask serves the same folder locally
+app = Flask(__name__, static_folder="public/static", static_url_path="/static")
 app.config["MAX_CONTENT_LENGTH"] = 100 * 1024 * 1024
 STORE = Path(tempfile.gettempdir()) / "resource_sheet_generator"
 STORE.mkdir(exist_ok=True)
